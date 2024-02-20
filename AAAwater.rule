@@ -1,0 +1,92 @@
+@RULE AAAwater
+流体模拟
+1,2:水
+3:墙
+4,5:双合水(密度双倍)
+
+@TABLE
+n_states:6
+neighborhood:Moore
+symmetries:none
+
+var void = 0
+var l_water = 1
+var r_water = 2
+var wall = 3
+var l_double_water = 4
+var r_double_water = 5
+
+var v=0
+var _v={1,2,3,4,5}
+var _v3 = {1,2,3,4,5}
+var _v4 = {1,2,3,4,5}
+var _v5 = {1,2,3,4,5}
+var lw=1
+var rw=2
+var w=3
+var ld=4
+var rd=5
+var d={ld,rd}
+
+var a={0,1,2,3,4,5}
+var a0=a
+var a1=a
+var a2=a
+var a3=a
+var a4=a
+var a5=a
+var a6=a
+var a7=a
+
+var water = {lw,rw}
+var _water = {v,w,ld,rd}
+
+#水的下落
+v,water,a1,a2,a3,a4,a5,a6,a7,water
+water,a0,a1,a2,a3,v,a5,a6,a7,v
+
+#双合水的传递(wvd dvw dvd) 注: 上无水
+v,_water,a1,lw,_v3,_v4,a5,rd,a7,ld #左双
+v,_water,a1,ld,a3,_v4,_v5,rw,a7,ld #右双
+v,_water,a1,ld,a3,_v4,a5,rd,a7,ld #全双
+
+#单水的平移
+ #注: rvl这种情况生成左双合水(又注: 一定不能在空中进行水的双合, 否则在三单位大小的开口处会无中生有约50%的体积)
+v,a0,a1,lw,_v3,_v4,_v5,rw,a7,ld
+ #left
+v,a0,a1,lw,_v,a4,a5,a6,a7,lw
+  #注:为防止下落水冲突，有下落水时左来水不回收
+lw,a0,a1,a2,a3,a4,a5,v,_water,v
+ #right
+v,a0,a1,a2,a3,a4,_v,rw,a7,rw
+  #注:为防止下落水冲突，有下落水时右来水不回收
+rw,a0,_water,v,a3,a4,a5,a6,a7,v
+
+#单水的转向
+#lw->rw
+var wr={w,rw,d}
+lw,a0,a1,a2,a3,a4,a5,wr,a7,rw
+#r->l
+var wl={w,lw,d}
+rw,a0,a1,wl,a3,a4,a5,a6,a7,lw
+
+#双合水的衰变
+ #左双合水衰变
+v,a0,a1,ld,a3,a4,a5,a6,a7,lw
+  #注:为防止下落水冲突，有下落水时双合水不衰变
+ld,a0,a1,a2,a3,a4,a5,v,_water,rw
+ #右双合水衰变
+v,a0,a1,a2,a3,a4,a5,rd,a7,rw
+  #注:为防止下落水冲突，有下落水时双合水不衰变
+rd,a0,_water,v,a3,a4,a5,a6,a7,lw
+
+#双合水的震荡
+ld,a0,a1,a2,a3,a4,a5,a6,a7,rd
+rd,a0,a1,a2,a3,a4,a5,a6,a7,ld
+
+@COLORS
+1 100 100 220
+2 80 80 220
+
+4 50 50 255
+5 0 0 255
